@@ -12,7 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "QSpy",
-      theme: ThemeData(primarySwatch: Colors.blueGrey),
+      theme: ThemeData(
+        primaryColor: Color(0xFF00364F),
+        highlightColor: Color(0xFF00364F),
+        primaryColorLight: Color(0xFFCEDDF4)
+      ),
       debugShowCheckedModeBanner: false,
       home: MyHomePage(),
     );

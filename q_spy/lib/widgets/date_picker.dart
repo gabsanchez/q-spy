@@ -38,7 +38,8 @@ class DatePicker extends StatelessWidget{
           onChanged: (response) {
             selectedDate = response;
             for (var location in locationsList) {
-              location.setLocationState(
+              location = new LocationChart(
+                location.label,
                 location.data,
                 new DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 05, 00),
                 new DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 22, 00),

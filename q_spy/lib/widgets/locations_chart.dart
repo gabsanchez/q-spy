@@ -8,15 +8,9 @@ class LocationChart extends StatefulWidget {
   final DateTime startDate;
   final DateTime endDate;
   LocationChart(this.label, this.data, this.startDate, this.endDate);
-  LocationChartState locationChartState;
   @override
   LocationChartState createState() {
-    locationChartState = new LocationChartState(label, data, startDate, endDate);
-    return locationChartState;
-  }
-
-  setLocationState(List<DataPoint<DateTime>> _data, DateTime _startDate, DateTime _endDate){
-    locationChartState.setLocationState(_data, _startDate, _endDate);
+    return new LocationChartState(label, data, startDate, endDate);
   }
 }
 
@@ -68,13 +62,5 @@ class LocationChartState extends State<LocationChart>{
             )),
       ))
     ]);
-  }
-
-  setLocationState(List<DataPoint<DateTime>> _data, DateTime _startDate, DateTime _endDate){
-    setState(() {
-      data = _data;
-      startDate = _startDate;
-      endDate = _endDate;
-    });
   }
 }
