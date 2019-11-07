@@ -1,17 +1,44 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'locations_chart.dart';
 
 class TimePicker extends StatelessWidget{
-  final List<String> hours;
-  final List<LocationChart> locationsList;
-  TimePicker(this.hours, this.locationsList);
+  final DateTime startDate;
+  final DateTime endDate;
+  final Function reload;
+  TimePicker(this.startDate, this.endDate, this.reload);
   @override
   Widget build(BuildContext context){
+    List<String> hours = [
+      "Todo el día",
+      "06:00",
+      "07:00",
+      "08:00",
+      "09:00",
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "15:00",
+      "16:00",
+      "17:00",
+      "18:00",
+      "19:00",
+      "20:00",
+      "21:00"
+    ];
     CarouselSlider hoursSlider = CarouselSlider(
     height: 40.0,
     viewportFraction: 0.99,
+    onPageChanged: (index){
+      if(index == 0){
+        reload("hour", DateTime(startDate.year, startDate.month, startDate.day, 05, 00), DateTime(endDate.year, endDate.month, endDate.day, 22, 00));
+      }
+      else{
+        reload("five", DateTime(startDate.year, startDate.month, startDate.day, index + 5, 00), DateTime(endDate.year, endDate.month, endDate.day, index + 6, 00));
+      }
+    },
     autoPlay: false,
     enlargeCenterPage: false,
     items: hours.map(

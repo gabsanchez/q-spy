@@ -2,14 +2,13 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'locations_chart.dart';
 
 class DatePicker extends StatelessWidget{
 
   final DateFormat dateInputFormat;
   final DateTime defaultDate;
-  final List<LocationChart> locationsList;
-  DatePicker(this.dateInputFormat, this.defaultDate, this.locationsList);
+  final Function reload;
+  DatePicker(this.dateInputFormat, this.defaultDate, this.reload);
 
   @override
   Widget build(BuildContext context){
@@ -37,14 +36,7 @@ class DatePicker extends StatelessWidget{
           readOnly: true,
           onChanged: (response) {
             selectedDate = response;
-            for (var location in locationsList) {
-              location = new LocationChart(
-                location.label,
-                location.data,
-                new DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 05, 00),
-                new DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 22, 00),
-              );
-            }
+            reload("hour", DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 05, 00), DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 22, 00));
           },
           onShowPicker: (context, currentValue) {
             return showDatePicker(
