@@ -8,7 +8,8 @@ class DatePicker extends StatelessWidget{
   final DateFormat dateInputFormat;
   final DateTime defaultDate;
   final Function reload;
-  DatePicker(this.dateInputFormat, this.defaultDate, this.reload);
+  final String scale;
+  DatePicker(this.dateInputFormat, this.defaultDate, this.reload, this.scale);
 
   @override
   Widget build(BuildContext context){
@@ -36,7 +37,7 @@ class DatePicker extends StatelessWidget{
           readOnly: true,
           onChanged: (response) {
             selectedDate = response;
-            reload("hour", DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 05, 00), DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 22, 00));
+            reload(scale, DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 05, 00), DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 22, 00));
           },
           onShowPicker: (context, currentValue) {
             return showDatePicker(

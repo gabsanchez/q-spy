@@ -89,7 +89,7 @@ class MainContainerState extends State<MainContainer> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DatePicker(dateInputFormat, initialDate, reload),
+              DatePicker(dateInputFormat, initialDate, reload, scale),
               TimePicker(startDate, endDate, reload),
               LocationChart(
                 label: "LABORATORIO T-203",
