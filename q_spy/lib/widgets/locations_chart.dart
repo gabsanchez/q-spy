@@ -1,16 +1,20 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:bezier_chart/bezier_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:q_spy/models/location_chart_item.dart';
+import 'package:http/http.dart' as http;
 
 class LocationChart extends StatefulWidget {
+  final String id;
   final String label;
   final DateTime startDate;
   final DateTime endDate;
   final String scale;
-  LocationChart({this.label, this.startDate, this.endDate, this.scale});
+  LocationChart({this.id, this.label, this.startDate, this.endDate, this.scale});
   @override
   LocationChartState createState() {
     return new LocationChartState();
@@ -18,57 +22,28 @@ class LocationChart extends StatefulWidget {
 }
 
 class LocationChartState extends State<LocationChart>{
+  List<DataPoint<double>> chartData = [DataPoint<double>(value: 0, xAxis: 0)];
+  Future<List<DataPoint<double>>> futureData;
+  DateTime nowDate = DateTime.now();
+  List<double> hoursIndexes = [0.0];
+  List<double> fiveminsIndexes = [];
+  List<BezierLine> seriesLine = [];
 
-  
-
+  @override
+  void didChangeDependencies() {
+    futureData = getData();
+    for(int i = 5; i < nowDate.hour; i++){
+      hoursIndexes.add(i - 4.0);
+    }
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context){
-    List<double> hoursIndexes = [];
-    List<double> fiveminsIndexes = [];
-    List<DataPoint<double>> otherSampleData = [];
-    List<DataPoint<double>> sampleData = [];
-    List<BezierLine> seriesLine = [];
     double contentWidth = 0.0;
-    hoursIndexes = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0];
+    //hoursIndexes = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0];
     fiveminsIndexes = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
-    otherSampleData = [
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 0),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 1),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 2),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 3),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 4),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 5),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 6),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 7),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 8),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 9),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 10),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 11),
-      DataPoint<double>(value: double.parse(Random().nextInt(30).toString()), xAxis: 12)
-    ];
-
-    sampleData = [
-      DataPoint<double>(value: 0, xAxis: 0),
-      DataPoint<double>(value: 10, xAxis: 1),
-      DataPoint<double>(value: 20, xAxis: 2),
-      DataPoint<double>(value: 30, xAxis: 3),
-      DataPoint<double>(value: 25, xAxis: 4),
-      DataPoint<double>(value: 15, xAxis: 5),
-      DataPoint<double>(value: 0, xAxis: 6),
-      DataPoint<double>(value: 5, xAxis: 7),
-      DataPoint<double>(value: 15, xAxis: 8),
-      DataPoint<double>(value: 18, xAxis: 9),
-      DataPoint<double>(value: 25, xAxis: 10),
-      DataPoint<double>(value: 13, xAxis: 11),
-      DataPoint<double>(value: 7, xAxis: 12),
-      DataPoint<double>(value: 15, xAxis: 13),
-      DataPoint<double>(value: 20, xAxis: 14),
-      DataPoint<double>(value: 10, xAxis: 15),
-      DataPoint<double>(value: 7, xAxis: 16),
-      DataPoint<double>(value: 0, xAxis: 17)
-    ];
-    seriesLine.add(BezierLine(lineColor: Color(0xFFFFD055), data: widget.scale == "five" ? otherSampleData : sampleData));
+    seriesLine.add(BezierLine(lineColor: Color(0xFFFFD055), data: chartData));
     String getXAxis(double index){
       if(widget.scale == "five"){
         switch(index.toString()){
@@ -112,6 +87,7 @@ class LocationChartState extends State<LocationChart>{
         }
       }
     }
+
     return Column(children: [
       Padding(
         padding: EdgeInsets.only(top: 16.0, right: 8.0, bottom: 8.0, left: 8.0),
@@ -131,30 +107,69 @@ class LocationChartState extends State<LocationChart>{
             child: Padding(
               padding: EdgeInsets.only(
                   top: 0.0, right: 20.0, bottom: 0.0, left: 0.0),
-              child: Builder(
-                builder: (context){
-                  contentWidth = widget.scale == "five" ? MediaQuery.of(context).size.width * 1.5 + widget.startDate.hour/10000 : MediaQuery.of(context).size.width * 2;
-                  return BezierChart(
-                    bezierChartScale: BezierChartScale.CUSTOM,
-                    xAxisCustomValues: widget.scale == "five" ? fiveminsIndexes : hoursIndexes,
-                    footerValueBuilder: getXAxis,
-                    series: seriesLine,
-                    config: BezierChartConfig(
-                      contentWidth: contentWidth,
-                      footerHeight: 40.0,
-                      showVerticalIndicator: false,
-                      verticalIndicatorFixedPosition: false,
-                      backgroundColor: Color(0xFF00364F),
-                      snap: true,
-                      displayYAxis: true,
-                      stepsYAxis: 5,
-                      xAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12),
-                      yAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12))
-                  );
+              child: FutureBuilder<List<DataPoint<double>>>(
+                future: futureData,
+                builder: (context, snapshot){
+                  if(snapshot.hasData){
+                    contentWidth = widget.scale == "five" ? MediaQuery.of(context).size.width * 1.5 + widget.startDate.hour/10000 : MediaQuery.of(context).size.width * 2;
+                    return BezierChart(
+                      bezierChartScale: BezierChartScale.CUSTOM,
+                      xAxisCustomValues: widget.scale == "five" ? fiveminsIndexes : hoursIndexes,
+                      footerValueBuilder: getXAxis,
+                      series: seriesLine,
+                      config: BezierChartConfig(
+                        contentWidth: contentWidth,
+                        footerHeight: 40.0,
+                        showVerticalIndicator: false,
+                        verticalIndicatorFixedPosition: false,
+                        backgroundColor: Color(0xFF00364F),
+                        snap: true,
+                        displayYAxis: true,
+                        stepsYAxis: 5,
+                        xAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                        yAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12))
+                    );
+                  }
+                  else{
+                    return Flex(
+                      direction: Axis.vertical,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Loading...",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0
+                          ),
+                          textAlign: TextAlign.center
+                          )
+                      ],
+                    );
+                  }
                 },
               )
             ))
       ))
     ]);
+  }
+  Future<List<DataPoint<double>>> getData() async {
+    Map<String, String> queryParameters = {
+      'fechaInicio': widget.startDate.toString(),
+      'IdLocacion': widget.id,
+    };
+    var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
+    final http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded'});
+
+    if (response.statusCode == 200){
+      var jsonList = jsonDecode(response.body);
+      for(int i = 5; i < nowDate.hour; i++){
+        LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i - 5]);
+        chartData.add(DataPoint<double>(value: location.movimiento, xAxis: i - 5.0));
+      }
+      return chartData;
+    }
+    else{
+      throw Exception('Failed to load data');
+    }
   }
 }

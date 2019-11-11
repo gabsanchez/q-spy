@@ -40,7 +40,7 @@ class MyHomePage extends StatelessWidget {
         ),
         body: MainContainer(
           "hour",
-          DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 05, 00),
+          DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 00, 00),
           DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 22, 00)
         )
       );
@@ -92,19 +92,8 @@ class MainContainerState extends State<MainContainer> {
               DatePicker(dateInputFormat, initialDate, reload, scale),
               TimePicker(startDate, endDate, reload),
               LocationChart(
+                id: "1",
                 label: "LABORATORIO T-203",
-                startDate: startDate,
-                endDate: endDate,
-                scale: scale
-              ),
-              LocationChart(
-                label: "LABORATORIO T-204",
-                startDate: startDate,
-                endDate: endDate,
-                scale: scale
-              ),
-              LocationChart(
-                label: "LABORATORIO G-302",
                 startDate: startDate,
                 endDate: endDate,
                 scale: scale
