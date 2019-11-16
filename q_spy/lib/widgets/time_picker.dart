@@ -9,11 +9,10 @@ class TimePicker extends StatelessWidget{
   TimePicker(this.startDate, this.endDate, this.reload);
   @override
   Widget build(BuildContext context){
-    DateTime nowDate = DateTime.now();
     List<String> hours = ["Todo el día"];
 
-    for(int i = 6; i < nowDate.hour; i++){
-      hours.add("0$i:00");
+    for(int i = 6; i < 22; i++){
+      hours.add("${i.toString().padLeft(0)}:00");
     }
 
     CarouselSlider hoursSlider = CarouselSlider(
@@ -32,7 +31,7 @@ class TimePicker extends StatelessWidget{
       items: hours.map(
         (hour) {
           return Container(
-            width: 200.0,
+            width: MediaQuery.of(context).size.width,
             padding: EdgeInsets.symmetric(vertical: 9.0, horizontal: 20.0),
             margin: EdgeInsets.symmetric(horizontal: 5.0),
             decoration: BoxDecoration(
@@ -54,6 +53,7 @@ class TimePicker extends StatelessWidget{
       margin: EdgeInsets.only(bottom: 20.0),
       child: Flex(
         direction: Axis.horizontal,
+        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
@@ -80,8 +80,8 @@ class TimePicker extends StatelessWidget{
           Container(
             child: hoursSlider,
             constraints: BoxConstraints(
-              maxWidth: 200.0,
-              minWidth: 200.0
+              maxWidth: MediaQuery.of(context).size.width - 210,
+              minWidth: 10.0,
             ),
           ),
           Container(

@@ -22,44 +22,61 @@ class LocationChart extends StatefulWidget {
 }
 
 class LocationChartState extends State<LocationChart>{
-  List<DataPoint<double>> chartData = [DataPoint<double>(value: 0, xAxis: 0)];
-  Future<List<DataPoint<double>>> futureData;
+  List<DataPoint<double>> hoursChartData = [];
+  List<DataPoint<double>> minutesChartData = [];
   DateTime nowDate = DateTime.now();
-  List<double> hoursIndexes = [0.0];
+  List<double> hoursIndexes = [];
   List<double> fiveminsIndexes = [];
   List<BezierLine> seriesLine = [];
+  BezierLine bezierLine;
+  bool loadedData = false;
+
+   StreamController<BezierLine> streamController = StreamController<BezierLine>();
+
+    @override
+  void initState() {
+    load();
+    super.initState();
+  }
+
+  load() async {
+    loadedData = false;
+    await getData();
+    streamController.add(bezierLine);
+    loadedData = true;
+  }
 
   @override
-  void didChangeDependencies() {
-    futureData = getData();
-    for(int i = 5; i < nowDate.hour; i++){
-      hoursIndexes.add(i - 4.0);
+  void didUpdateWidget(LocationChart oldWidget) {
+    if(oldWidget.startDate.day != widget.startDate.day || oldWidget.startDate.hour != widget.startDate.hour){
+      load();
     }
-    super.didChangeDependencies();
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    streamController.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context){
-    double contentWidth = 0.0;
-    //hoursIndexes = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0];
-    fiveminsIndexes = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
-    seriesLine.add(BezierLine(lineColor: Color(0xFFFFD055), data: chartData));
     String getXAxis(double index){
       if(widget.scale == "five"){
         switch(index.toString()){
-          case "0.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":00";
-          case "1.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":05";
-          case "2.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":10";
-          case "3.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":15";
-          case "4.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":20";
-          case "5.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":25";
-          case "6.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":30";
-          case "7.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":35";
-          case "8.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":40";
-          case "9.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":45";
-          case "10.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":50";
-          case "11.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":55";
-          case "12.0": return (widget.startDate.hour + 1).toString().padLeft(2, '0') + ":00";
+          case "0.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":05";
+          case "1.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":10";
+          case "2.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":15";
+          case "3.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":20";
+          case "4.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":25";
+          case "5.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":30";
+          case "6.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":35";
+          case "7.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":40";
+          case "8.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":45";
+          case "9.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":50";
+          case "10.0": return widget.startDate.hour.toString().padLeft(2, '0') + ":55";
+          case "11.0": return (widget.startDate.hour + 1).toString().padLeft(2, '0') + ":00";
           default: return "";
         }
       }
@@ -78,11 +95,10 @@ class LocationChartState extends State<LocationChart>{
           case "10.0": return "16:00";
           case "11.0": return "17:00";
           case "12.0": return "18:00";
-          case "13.0": return "18:00";
-          case "14.0": return "19:00";
-          case "15.0": return "20:00";
-          case "16.0": return "21:00";
-          case "17.0": return "22:00";
+          case "13.0": return "19:00";
+          case "14.0": return "20:00";
+          case "15.0": return "21:00";
+          case "16.0": return "22:00";
           default: return "";
         }
       }
@@ -104,30 +120,37 @@ class LocationChartState extends State<LocationChart>{
         child: Container(
             height: 250,
             width: MediaQuery.of(context).size.width * 0.9,
-            child: Padding(
-              padding: EdgeInsets.only(
-                  top: 0.0, right: 20.0, bottom: 0.0, left: 0.0),
-              child: FutureBuilder<List<DataPoint<double>>>(
-                future: futureData,
+            child: StreamBuilder<BezierLine>(
+                stream: streamController.stream,
                 builder: (context, snapshot){
-                  if(snapshot.hasData){
-                    contentWidth = widget.scale == "five" ? MediaQuery.of(context).size.width * 1.5 + widget.startDate.hour/10000 : MediaQuery.of(context).size.width * 2;
-                    return BezierChart(
-                      bezierChartScale: BezierChartScale.CUSTOM,
-                      xAxisCustomValues: widget.scale == "five" ? fiveminsIndexes : hoursIndexes,
-                      footerValueBuilder: getXAxis,
-                      series: seriesLine,
-                      config: BezierChartConfig(
-                        contentWidth: contentWidth,
-                        footerHeight: 40.0,
-                        showVerticalIndicator: false,
-                        verticalIndicatorFixedPosition: false,
-                        backgroundColor: Color(0xFF00364F),
-                        snap: true,
-                        displayYAxis: true,
-                        stepsYAxis: 5,
-                        xAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12),
-                        yAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 12))
+                  if(loadedData && snapshot.hasData && snapshot.data.data.length > 0 && (widget.scale == "five" ? fiveminsIndexes : hoursIndexes).length == snapshot.data.data.length){
+                    //contentWidth = widget.scale == "five" ? MediaQuery.of(context).size.width * 1.5 + widget.startDate.hour/1000 : MediaQuery.of(context).size.width * 2 + widget.startDate.day/1000;
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          top: 0.0, right: 20.0, bottom: 0.0, left: 0.0),
+                      child: BezierChart(
+                        bezierChartScale: BezierChartScale.CUSTOM,
+                        xAxisCustomValues: widget.scale == "five" ? fiveminsIndexes : hoursIndexes,
+                        footerValueBuilder: getXAxis,
+                        series: [snapshot.data],
+                        config: BezierChartConfig(
+                          displayLinesXAxis: true,
+                          showDataPoints: true,
+                          contentWidth: widget.scale == "five" ? MediaQuery.of(context).size.width * 2 + widget.startDate.hour/1000 : MediaQuery.of(context).size.width * 2.5 + widget.startDate.day/1000,
+                          footerHeight: 30.0,
+                          showVerticalIndicator: false,
+                          verticalIndicatorFixedPosition: false,
+                          backgroundColor: Color(0xFF00364F),
+                          snap: true,
+                          verticalIndicatorStrokeWidth: 0.0,
+                          displayDataPointWhenNoValue: false,
+                          pinchZoom: false,
+                          displayYAxis: true,
+                          stepsYAxis: 1,
+                          xAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 14),
+                          yAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 14)
+                        )
+                      )
                     );
                   }
                   else{
@@ -135,41 +158,71 @@ class LocationChartState extends State<LocationChart>{
                       direction: Axis.vertical,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text(
-                          "Loading...",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20.0
-                          ),
-                          textAlign: TextAlign.center
-                          )
+                        CircularProgressIndicator()
                       ],
                     );
                   }
                 },
               )
             ))
-      ))
+      )
     ]);
   }
-  Future<List<DataPoint<double>>> getData() async {
-    Map<String, String> queryParameters = {
-      'fechaInicio': widget.startDate.toString(),
-      'IdLocacion': widget.id,
-    };
-    var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
-    final http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded'});
 
-    if (response.statusCode == 200){
-      var jsonList = jsonDecode(response.body);
-      for(int i = 5; i < nowDate.hour; i++){
-        LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i - 5]);
-        chartData.add(DataPoint<double>(value: location.movimiento, xAxis: i - 5.0));
+  Future<BezierLine> getData() async {
+    if(widget.scale == "five"){
+      Map<String, String> queryParameters = {
+        'IdLocacion': widget.id,
+        'horaInicio': widget.startDate.toString()
+      };
+      var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
+      http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded, application/json'});
+      if (response.statusCode == 200){
+        var jsonList = jsonDecode(response.body);
+        fiveminsIndexes = [];
+        minutesChartData = [];
+        for(int i = 0; i < jsonList.length; i++){
+          jsonList[i]['hora'] = jsonList[i]['minuto'];
+          fiveminsIndexes.add(i + 0.0);
+          LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i]);
+          minutesChartData.add(DataPoint<double>(value: location.movimiento, xAxis: i + 0.0));
+        }
+        bezierLine = BezierLine(
+          lineColor: Color(0xFFFFD055),
+          data: minutesChartData
+        );
+        return bezierLine;
       }
-      return chartData;
+      else{
+        throw Exception('Failed to load data');
+      }
     }
     else{
-      throw Exception('Failed to load data');
+      Map<String, String> queryParameters = {
+        'IdLocacion': widget.id,
+        'fechaInicio': widget.startDate.toString()
+      };
+      var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
+      http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded, application/json'});
+
+      if (response.statusCode == 200){
+        var jsonList = jsonDecode(response.body);
+        hoursIndexes = [];
+        hoursChartData = [];
+        for(int i = 0; i < jsonList.length; i++){
+          hoursIndexes.add(i + 0.0);
+          LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i]);
+          hoursChartData.add(DataPoint<double>(value: location.movimiento, xAxis: i + 0.0));
+        }
+        bezierLine = new BezierLine(
+          lineColor: Color(0xFFFFD055),
+          data: hoursChartData
+        );
+        return bezierLine;
+      }
+      else{
+        throw Exception('Failed to load data');
+      }
     }
   }
 }

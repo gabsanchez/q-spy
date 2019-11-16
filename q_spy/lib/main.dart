@@ -79,27 +79,27 @@ class MainContainerState extends State<MainContainer> {
     DateFormat dateInputFormat = DateFormat("dd/MM/yyyy");
 
     return Container(
+      height: MediaQuery.of(context).size.height - 30,
       decoration: BoxDecoration(
         color: Color(0xFFCEDDF4)
       ),
       child: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DatePicker(dateInputFormat, initialDate, reload, scale),
-              TimePicker(startDate, endDate, reload),
-              LocationChart(
-                id: "1",
-                label: "LABORATORIO T-203",
-                startDate: startDate,
-                endDate: endDate,
-                scale: scale
-              )
-            ]
-          )
+        padding: EdgeInsets.all(10.0),
+        child: Flex(
+          direction: Axis.vertical,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            DatePicker(dateInputFormat, initialDate, reload, scale, startDate, endDate),
+            TimePicker(startDate, endDate, reload),
+            LocationChart(
+              id: "1",
+              label: "LABORATORIO M-315",
+              startDate: startDate,
+              endDate: endDate,
+              scale: scale
+            )
+          ]
         )
       )
     );
