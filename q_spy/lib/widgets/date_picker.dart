@@ -35,7 +35,7 @@ class DatePicker extends StatelessWidget{
           resetIcon: null,
           textAlign: TextAlign.center,
           format: dateInputFormat,
-          initialValue: DateTime.now(),
+          initialValue: selectedDate,
           readOnly: true,
           onChanged: (response) {
             selectedDate = response;

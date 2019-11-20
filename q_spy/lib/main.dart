@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "QSpy",
+      title: "Q Spy",
       theme: ThemeData(
         primaryColor: Color(0xFF00364F),
         highlightColor: Color(0xFF00364F),
@@ -90,7 +90,7 @@ class MainContainerState extends State<MainContainer> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            DatePicker(dateInputFormat, initialDate, reload, scale, startDate, endDate),
+            DatePicker(dateInputFormat, startDate, reload, scale, startDate, endDate),
             TimePicker(startDate, endDate, reload),
             LocationChart(
               id: "1",

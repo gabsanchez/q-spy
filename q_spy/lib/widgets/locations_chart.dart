@@ -123,8 +123,7 @@ class LocationChartState extends State<LocationChart>{
             child: StreamBuilder<BezierLine>(
                 stream: streamController.stream,
                 builder: (context, snapshot){
-                  if(loadedData && snapshot.hasData && snapshot.data.data.length > 0 && (widget.scale == "five" ? fiveminsIndexes : hoursIndexes).length == snapshot.data.data.length){
-                    //contentWidth = widget.scale == "five" ? MediaQuery.of(context).size.width * 1.5 + widget.startDate.hour/1000 : MediaQuery.of(context).size.width * 2 + widget.startDate.day/1000;
+                  if(loadedData && snapshot.data.data.length > 0 && (widget.scale == "five" ? fiveminsIndexes : hoursIndexes).length == snapshot.data.data.length){
                     return Padding(
                       padding: EdgeInsets.only(
                           top: 0.0, right: 20.0, bottom: 0.0, left: 0.0),
@@ -170,15 +169,16 @@ class LocationChartState extends State<LocationChart>{
   }
 
   Future<BezierLine> getData() async {
-    if(widget.scale == "five"){
-      Map<String, String> queryParameters = {
-        'IdLocacion': widget.id,
-        'horaInicio': widget.startDate.toString()
-      };
-      var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
-      http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded, application/json'});
-      if (response.statusCode == 200){
-        var jsonList = jsonDecode(response.body);
+    String dateKey = widget.scale == "five" ? 'horaInicio' : 'fechaInicio';
+    Map<String, String> queryParameters = {
+      'IdLocacion': widget.id,
+      dateKey: widget.startDate.toString()
+    };
+    var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
+    http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded, application/json'});
+    if (response.statusCode == 200){
+      var jsonList = jsonDecode(response.body);
+      if(widget.scale == "five"){
         fiveminsIndexes = [];
         minutesChartData = [];
         for(int i = 0; i < jsonList.length; i++){
@@ -194,19 +194,6 @@ class LocationChartState extends State<LocationChart>{
         return bezierLine;
       }
       else{
-        throw Exception('Failed to load data');
-      }
-    }
-    else{
-      Map<String, String> queryParameters = {
-        'IdLocacion': widget.id,
-        'fechaInicio': widget.startDate.toString()
-      };
-      var uri = Uri.https('iot-backend-url.azurewebsites.net', '/api/reporte', queryParameters);
-      http.Response response = await http.get(uri, headers: { HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded, application/json'});
-
-      if (response.statusCode == 200){
-        var jsonList = jsonDecode(response.body);
         hoursIndexes = [];
         hoursChartData = [];
         for(int i = 0; i < jsonList.length; i++){
@@ -220,9 +207,9 @@ class LocationChartState extends State<LocationChart>{
         );
         return bezierLine;
       }
-      else{
-        throw Exception('Failed to load data');
-      }
+    }
+    else{
+      throw Exception('Failed to load data');
     }
   }
 }
