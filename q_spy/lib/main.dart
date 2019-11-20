@@ -98,6 +98,13 @@ class MainContainerState extends State<MainContainer> {
               startDate: startDate,
               endDate: endDate,
               scale: scale
+            ),
+            LocationChart(
+              id: "2",
+              label: "LABORATORIO M-316",
+              startDate: startDate,
+              endDate: endDate,
+              scale: scale
             )
           ]
         )

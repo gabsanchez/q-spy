@@ -30,6 +30,7 @@ class LocationChartState extends State<LocationChart>{
   List<BezierLine> seriesLine = [];
   BezierLine bezierLine;
   bool loadedData = false;
+  int stepsY = 1;
 
    StreamController<BezierLine> streamController = StreamController<BezierLine>();
 
@@ -105,20 +106,15 @@ class LocationChartState extends State<LocationChart>{
     }
 
     return Column(children: [
-      Padding(
-        padding: EdgeInsets.only(top: 16.0, right: 8.0, bottom: 8.0, left: 8.0),
-        child: Text(widget.label,
-        style: TextStyle(
-          color: Color(0xFF00364F),
-          fontSize: 20,
-          fontFamily: "Quicksand-Semibold"
-        ))),
-      Center(
+      Stack(
+        children: [Center(
         child: Card(
+        margin: EdgeInsets.only(bottom: 20.0, top: 20),
         clipBehavior: Clip.hardEdge,
         color: Color(0xFF00364F),
         child: Container(
-            height: 250,
+            height: 300.0,
+            padding: EdgeInsets.only(top: 60.0),
             width: MediaQuery.of(context).size.width * 0.9,
             child: StreamBuilder<BezierLine>(
                 stream: streamController.stream,
@@ -132,7 +128,9 @@ class LocationChartState extends State<LocationChart>{
                         xAxisCustomValues: widget.scale == "five" ? fiveminsIndexes : hoursIndexes,
                         footerValueBuilder: getXAxis,
                         series: [snapshot.data],
+                        bubbleLabelValueBuilder: (index) => "",
                         config: BezierChartConfig(
+                          bubbleIndicatorColor: Colors.white,
                           displayLinesXAxis: true,
                           showDataPoints: true,
                           contentWidth: widget.scale == "five" ? MediaQuery.of(context).size.width * 2 + widget.startDate.hour/1000 : MediaQuery.of(context).size.width * 2.5 + widget.startDate.day/1000,
@@ -140,12 +138,12 @@ class LocationChartState extends State<LocationChart>{
                           showVerticalIndicator: false,
                           verticalIndicatorFixedPosition: false,
                           backgroundColor: Color(0xFF00364F),
-                          snap: true,
+                          snap: false,
                           verticalIndicatorStrokeWidth: 0.0,
                           displayDataPointWhenNoValue: false,
                           pinchZoom: false,
                           displayYAxis: true,
-                          stepsYAxis: 1,
+                          stepsYAxis: stepsY,
                           xAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 14),
                           yAxisTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 14)
                         )
@@ -164,7 +162,24 @@ class LocationChartState extends State<LocationChart>{
                 },
               )
             ))
-      )
+      ),
+      Container(
+        alignment: Alignment.topCenter,
+          margin: EdgeInsets.only(top: 40.0, right: 80.0, left: 80.0, bottom: 0.0),
+          padding: EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+            border: Border.all( color: Colors.white),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+              fontFamily: "Quicksand-Semibold"
+            )
+          )
+        )],
+      ),
     ]);
   }
 
@@ -180,13 +195,18 @@ class LocationChartState extends State<LocationChart>{
       var jsonList = jsonDecode(response.body);
       if(widget.scale == "five"){
         fiveminsIndexes = [];
-        minutesChartData = [];
+        minutesChartData = [];        
+        List<double> moimientos = [];
         for(int i = 0; i < jsonList.length; i++){
           jsonList[i]['hora'] = jsonList[i]['minuto'];
           fiveminsIndexes.add(i + 0.0);
           LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i]);
           minutesChartData.add(DataPoint<double>(value: location.movimiento, xAxis: i + 0.0));
+          moimientos.add(location.movimiento);
         }
+        moimientos.sort();
+        //La escala depende del mayor movimiento
+        stepsY = (moimientos.last ~/ 8) + 1;
         bezierLine = BezierLine(
           lineColor: Color(0xFFFFD055),
           data: minutesChartData
@@ -196,11 +216,16 @@ class LocationChartState extends State<LocationChart>{
       else{
         hoursIndexes = [];
         hoursChartData = [];
+        List<double> moimientos = [];
         for(int i = 0; i < jsonList.length; i++){
           hoursIndexes.add(i + 0.0);
           LocationDartTiem location = LocationDartTiem.fromJson(jsonList[i]);
           hoursChartData.add(DataPoint<double>(value: location.movimiento, xAxis: i + 0.0));
+          moimientos.add(location.movimiento);
         }
+        moimientos.sort();
+        //La escala depende del mayor movimiento
+        stepsY = (moimientos.last ~/ 8) + 1;
         bezierLine = new BezierLine(
           lineColor: Color(0xFFFFD055),
           data: hoursChartData
